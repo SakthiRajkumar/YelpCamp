@@ -9,7 +9,7 @@ const Campground = require("./models/campground");
 require('dotenv').config();
 console.log("URI for env",process.env.MONGODB_URI);
 //const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/yelp-camp';
-const mongoURI = 'mongodb+srv://sakthir1610:December@2025YelpCamp@yelpcamp-cluster.t5twpd9.mongodb.net/yelp-camp?appName=yelpcamp-cluster';
+const mongoURI = 'mongodb+srv://sakthir1610:December%402025YelpCamp@yelpcamp-cluster.t5twpd9.mongodb.net/yelp-camp?appName=yelpcamp-cluster';
 mongoose.connect(mongoURI);
 
 const db = mongoose.connection;
