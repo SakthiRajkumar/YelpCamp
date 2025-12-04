@@ -28,6 +28,7 @@ app.use(express.urlencoded({extended:true}));
 app.use(methodOverride('_method'));
 
 //Routes
+
 app.post("/campgrounds", async(req,res)=>{
     const camp = new Campground(req.body.campground);
     await camp.save();
@@ -38,6 +39,14 @@ app.get("/",async (req,res)=>{
     const campgrounds = await Campground.find({});
     res.render("campgrounds/index",{campgrounds});
 });
+
+app.get("/run-seed",async(req,res)=>{
+    if(req.query.key!=='Pwd1234'){
+        return res.status(403).send('Unauthorized');
+    }
+    require('./seeds/index.js');
+    res.redirect("/");
+})
 
 
 app.get("/campgrounds/new",(req,res)=>{
@@ -59,7 +68,7 @@ app.get("/campgrounds/:id/edit",async (req,res)=>{
 app.delete("/campgrounds/:id",async(req,res)=>{
     const {id} = req.params;
     await Campground.findByIdAndDelete(id);
-    res.redirect("/campgrounds");
+    res.redirect("/");
 })
 
 app.put("/campgrounds/:id",async(req,res)=>{
