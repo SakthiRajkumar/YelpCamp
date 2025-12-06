@@ -45,7 +45,7 @@ app.use(methodOverride('_method'));
 //Routes
 
 app.get("/",(req,res)=>{
-    res.send("Home Page!");
+    res.redirect("/campgrounds");
 });
 
 app.post("/campgrounds",validateCampground, catchAsync(async(req,res,next)=>{
