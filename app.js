@@ -3,15 +3,17 @@ const path = require('path');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const flash = require('connect-flash');
-
+const User = require('./models/user');
+const { checkUser, requireAuth } = require('./middleware');
 const catchAsync = require('./utils/catchAsync');
 const ExpressError = require('./utils/ExpressError');
 const methodOverride = require('method-override');
 
 const ejsMate = require("ejs-mate");
 
-const campgrounds = require('./routes/campgrounds');
-const reviews = require('./routes/reviews');
+const userRoutes = require('./routes/users');
+const campgroundsRoutes = require('./routes/campgrounds');
+const reviewRoutes = require('./routes/reviews');
 
 //Connect to mongoose
 //mongoose.connect('mongodb://localhost:27017/yelp-camp');
@@ -51,18 +53,21 @@ const sessionConfig = {
 };
 app.use(session(sessionConfig));
 app.use(flash());
+app.use(checkUser);
 
 //Middleware
-app.use((req,res,next)=>{
+app.use(async (req,res,next)=>{
     res.locals.success = req.flash('success'); 
     res.locals.error = req.flash('error'); 
     next();
-})
+});
+
 
 //Routes
 
-app.use("/campgrounds",campgrounds);
-app.use("/campgrounds/:id/reviews",reviews);
+app.use("/",userRoutes);
+app.use("/campgrounds",campgroundsRoutes);
+app.use("/campgrounds/:id/reviews",reviewRoutes);
 
 app.get("/run-seed",catchAsync(async(req,res)=>{
     if(req.query.key!=='Pwd1234'){
@@ -78,7 +83,7 @@ app.get("/",(req,res)=>{
 
 //Error Handling
 
-app.all(/(.*)/, (req, res, next) => {
+app.all(/.*/, (req, res, next) => {
     next(new ExpressError(404,"Page Not Found!"));
 })
 
