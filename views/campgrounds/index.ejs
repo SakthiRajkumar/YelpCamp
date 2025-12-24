@@ -1,28 +1,43 @@
 <% layout("layouts/boilerplate") %>
-    <h1>All Campgrounds</h1>
+<!-- <div  crossorigin="anonymous" id="clusterMap"></div> -->
+<h1>All Campgrounds</h1>
 
-    <% for(let camp of campgrounds){ %>
-        <div class="card mb-3">
-            <div class="row ">
-                <div class="col-md-4">
-                    <img class="img-fluid" src="<%=camp.image%>" alt="" srcset="">
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <%=camp.title%>
-                        </h5>
-                        <p class="card-text">
-                            <%=camp.description%>
-                        </p>
-                        <p class="card-text"> <small class="text-secondary">
-                                <%=camp.location%>
-                            </small></p>
-                        <a href="/campgrounds/<%=camp._id%>" class="btn btn-primary">View <%=camp.title%></a>
-                    </div>
+<% for(let camp of campgrounds){ %>
+<div class="card mb-3">
+  <div class="row">
+    <div class="col-md-4">
+      <img
+        crossorigin="anonymous"
+        class="img-fluid"
+        src="<%= camp.image && camp.image[0] ? String(camp.image[0].url || camp.image[0]) : 'https://www.10wallpaper.com/wallpaper/1366x768/1710/Tent_starry_sky_night-2017_High_Quality_Wallpaper_1366x768.jpg' %>"
+        alt="<%= camp.title %>"
+      />
+    </div>
 
-                </div>
-            </div>
+    <div class="col-md-8">
+      <div class="card-body">
+        <h5 class="card-title"><%=camp.title%></h5>
+        <p class="card-text"><%=camp.description%></p>
+        <p class="card-text"><small class="text-secondary"> <%=camp.location%> </small></p>
+        <a href="/campgrounds/<%=camp._id%>" class="btn btn-primary">View <%=camp.title%></a>
+      </div>
+    </div>
+  </div>
+</div>
+<%}%>
+<script>
 
-        </div>
-        <%}%>
+  const maptilerApiKey = "<%- process.env.MAPTILER_API_KEY %>";
+  const campgrounds = {
+    type: "FeatureCollection",
+    features: <%- JSON.stringify(
+      campgrounds.map(campground => ({
+        type: "Feature",
+        geometry: campground.geometry,
+        properties: { popUpMarkup: campground?.properties?.popUpMarkup }
+      }))
+    ) %>
+  };
+</script>
+
+<script crossorigin="anonymous" src="/javascripts/clusterMap.js"></script>
