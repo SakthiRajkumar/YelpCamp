@@ -14,6 +14,7 @@ const ExpressError = require('./utils/ExpressError');
 const methodOverride = require('method-override');
 const sanitizeV5 = require('./utils/mongoSanitizeV5.js');
 const helmet = require('helmet');
+const MongoDBStore = require('connect-mongo') (session);
 
 const ejsMate = require("ejs-mate");
 
@@ -51,8 +52,18 @@ app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname,"public")));
 app.use(sanitizeV5({ replaceWith: '_' }));
 
+const store = new MongoDBStore({
+    url : process.env.MONGODB_URI,
+    secret : 'thisshouldbeabettersecret',
+    touchAfter : 24 * 60 * 60 
+});
+
+store.on("error", function(e){
+    console.log("SESSION STORE ERROR", e)
+})
 
 const sessionConfig = {
+    store, 
     name : 'sessh',
     secret : 'thisshouldbeabettersecret',
     resave : false,
@@ -64,10 +75,64 @@ const sessionConfig = {
         //secure: true
     }
 };
+
 app.use(session(sessionConfig));
 app.use(flash());
 app.use(checkUser);
-app.use(helmet({contentSecurityPolicy: false}))
+app.use(helmet());
+
+const scriptSrcUrls = [
+    "https://stackpath.bootstrapcdn.com/",
+    // "https://api.tiles.mapbox.com/",
+    // "https://api.mapbox.com/",
+    "https://kit.fontawesome.com/",
+    "https://cdnjs.cloudflare.com/",
+    "https://cdn.jsdelivr.net",
+    "https://cdn.maptiler.com/", // add this
+];
+const styleSrcUrls = [
+    "https://kit-free.fontawesome.com/",
+    "https://stackpath.bootstrapcdn.com/",
+    // "https://api.mapbox.com/",
+    // "https://api.tiles.mapbox.com/",
+    "https://fonts.googleapis.com/",
+    "https://use.fontawesome.com/",
+    "https://cdn.jsdelivr.net",
+    "https://cdn.maptiler.com/", // add this
+];
+const connectSrcUrls = [
+    // "https://api.mapbox.com/",
+    // "https://a.tiles.mapbox.com/",
+    // "https://b.tiles.mapbox.com/",
+    // "https://events.mapbox.com/",
+    "https://api.maptiler.com/", // add this
+];
+const fontSrcUrls = [];
+
+app.use(helmet.contentSecurityPolicy({
+    directives:{
+        defaultSrc: [],
+        connectSrc : ["'self'",...connectSrcUrls],
+        scriptSrc : ["'unsafe-inline'","'self'", ...scriptSrcUrls],
+        styleSrc : ["'self'","'unsafe-inline'", ...styleSrcUrls],
+        workerSrc: [
+    "'self'", 
+    "blob:", 
+    "https://api.maptiler.com",
+],
+        objectSrc : [],
+        imgSrc: [
+            "'self'",
+            "blob:",
+            "data:",
+            "https://res.cloudinary.com/dqhmyteav/",
+            "https://api.maptiler.com/",
+            "https://images.unsplash.com/"
+        ],
+        fontSrc :["'self'",...fontSrcUrls],
+},
+})
+);
 
 //Middleware
 app.use(async (req,res,next)=>{
